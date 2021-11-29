@@ -146,7 +146,7 @@ end
 always @ (state)
 begin
   //reset all output state values to 0
-  	test_logic_reset = 1'b0;
+  test_logic_reset = 1'b0;
 	run_test_idle = 1'b0;
 	select_dr_scan = 1'b0;
 	capture_dr = 1'b0;
@@ -181,7 +181,6 @@ begin
 		`state_pause_ir:         pause_ir = 1'b1;
 		`state_exit2_ir:         exit2_ir = 1'b1;
 		`state_update_ir:        update_ir = 1'b1;
-		default: ;
 	endcase
 end
 endmodule
