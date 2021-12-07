@@ -22,6 +22,11 @@ module tap
   output reg update_ir
 );
 
+// Taking 4 bit rehister to store the 16 states
+reg [3:0] state;
+reg [3:0] next_state;
+
+
 // Defining 4 bit values for the states
 `define state_test_logic_reset 4'h0
 `define state_run_test_idle    4'h1
@@ -41,10 +46,6 @@ module tap
 `define state_update_ir        4'hF
 
 
-// Taking 4 bit rehister to store the 16 states
-reg [3:0] state = `state_test_logic_reset;
-reg [3:0] next_state;
-
 // Sequential
 always @ (posedge tclk or negedge trst)
 begin
@@ -54,133 +55,143 @@ begin
 		state = next_state;
 end
 
+
+initial
+begin
+	state = `state_test_logic_reset;
+end
+
+
 //FSM
 always @ (state or tms)
 begin
   case(state)
 		`state_test_logic_reset:
 			begin
-			if(tms) next_state = `state_test_logic_reset; 
+			if(tms==1) next_state = `state_test_logic_reset; 
 			else next_state = `state_run_test_idle;
 			end
 		`state_run_test_idle:
 			begin
-			if(tms) next_state = `state_select_dr_scan; 
+			if(tms==1) next_state = `state_select_dr_scan; 
 			else next_state = `state_run_test_idle;
 			end
 		`state_select_dr_scan:
 			begin
-			if(tms) next_state = `state_select_ir_scan; 
+			if(tms==1) next_state = `state_select_ir_scan; 
 			else next_state = `state_capture_dr;
 			end
 		`state_capture_dr:
 			begin
-			if(tms) next_state = `state_exit1_dr; 
+			if(tms==1) next_state = `state_exit1_dr; 
 			else next_state = `state_shift_dr;
 			end
 		`state_shift_dr:
 			begin
-			if(tms) next_state = `state_exit1_dr; 
+			if(tms==1) next_state = `state_exit1_dr; 
 			else next_state = `state_shift_dr;
 			end
 		`state_exit1_dr:
 			begin
-			if(tms) next_state = `state_update_dr; 
+			if(tms==1) next_state = `state_update_dr; 
 			else next_state = `state_pause_dr;
 			end
 		`state_pause_dr:
 			begin
-			if(tms) next_state = `state_exit2_dr; 
+			if(tms==1) next_state = `state_exit2_dr; 
 			else next_state = `state_pause_dr;
 			end
 		`state_exit2_dr:
 			begin
-			if(tms) next_state = `state_update_dr; 
+			if(tms==1) next_state = `state_update_dr; 
 			else next_state = `state_shift_dr;
 			end
 		`state_update_dr:
 			begin
-			if(tms) next_state = `state_select_dr_scan; 
+			if(tms==1) next_state = `state_select_dr_scan; 
 			else next_state = `state_run_test_idle;
 			end
 		`state_select_ir_scan:
 			begin
-			if(tms) next_state = `state_test_logic_reset;
+			if(tms==1) next_state = `state_test_logic_reset;
 			else next_state = `state_capture_ir;
 			end
 		`state_capture_ir:
 			begin
-			if(tms) next_state = `state_exit1_ir; 
+			if(tms==1) next_state = `state_exit1_ir; 
 			else next_state = `state_shift_ir;
 			end
 		`state_shift_ir:
 			begin
-			if(tms) next_state = `state_exit1_ir; 
+			if(tms==1) next_state = `state_exit1_ir; 
 			else next_state = `state_shift_ir;
 			end
 		`state_exit1_ir:
 			begin
-			if(tms) next_state = `state_update_ir;
+			if(tms==1) next_state = `state_update_ir;
 			else next_state = `state_pause_ir;
 			end
 		`state_pause_ir:
 			begin
-			if(tms) next_state = `state_exit2_ir;
+			if(tms==1) next_state = `state_exit2_ir;
 			else next_state = `state_pause_ir;
 			end
 		`state_exit2_ir:
 			begin
-			if(tms) next_state = `state_update_ir;
+			if(tms==1) next_state = `state_update_ir;
 			else next_state = `state_shift_ir;
 			end
 		`state_update_ir:
 			begin
-			if(tms) next_state = `state_select_dr_scan;
+			if(tms==1) next_state = `state_select_dr_scan;
 			else next_state = `state_run_test_idle;
 			end
-		default: next_state = `state_test_logic_reset;
 	endcase
 end
+
+
+`define reset 1'b0
+`define set 1'b1
 
 //Output of controller
 always @ (state)
 begin
   //reset all output state values to 0
-  test_logic_reset = 1'b0;
-	run_test_idle = 1'b0;
-	select_dr_scan = 1'b0;
-	capture_dr = 1'b0;
-	shift_dr = 1'b0;
-	exit1_dr = 1'b0;
-	pause_dr = 1'b0;
-	exit2_dr = 1'b0;
-	update_dr = 1'b0;
-	select_ir_scan = 1'b0;
-	capture_ir = 1'b0;
-	shift_ir = 1'b0;
-	exit1_ir = 1'b0;
-	pause_ir = 1'b0;
-	exit2_ir = 1'b0;
-	update_ir = 1'b0;
+  test_logic_reset = `reset;
+	run_test_idle = `reset;
+	select_dr_scan = `reset;
+	capture_dr = `reset;
+	shift_dr = `reset;
+	exit1_dr = `reset;
+	pause_dr = `reset;
+	exit2_dr = `reset;
+	update_dr = `reset;
+	select_ir_scan = `reset;
+	capture_ir = `reset;
+	shift_ir = `reset;
+	exit1_ir = `reset;
+	pause_ir = `reset;
+	exit2_ir = `reset;
+	update_ir = `reset;
 
   //update output state value depending on current state
   case(state)
-		`state_test_logic_reset: test_logic_reset = 1'b1;
-		`state_run_test_idle:    run_test_idle = 1'b1;
-		`state_select_dr_scan:   select_dr_scan = 1'b1;
-		`state_capture_dr:       capture_dr = 1'b1;
-		`state_shift_dr:         shift_dr = 1'b1;
-		`state_exit1_dr:         exit1_dr = 1'b1;
-		`state_pause_dr:         pause_dr = 1'b1;
-		`state_exit2_dr:         exit2_dr = 1'b1;
-		`state_update_dr:        update_dr = 1'b1;
-		`state_select_ir_scan:   select_ir_scan = 1'b1;
-		`state_capture_ir:       capture_ir = 1'b1;
-		`state_shift_ir:         shift_ir = 1'b1;
-		`state_exit1_ir:         exit1_ir = 1'b1;
-		`state_pause_ir:         pause_ir = 1'b1;
-		`state_exit2_ir:         exit2_ir = 1'b1;
-		`state_update_ir:        update_ir = 1'b1;
+		`state_test_logic_reset: test_logic_reset = `set;
+		`state_run_test_idle:    run_test_idle = `set;
+		`state_select_dr_scan:   select_dr_scan = `set;
+		`state_capture_dr:       capture_dr = `set;
+		`state_shift_dr:         shift_dr = `set;
+		`state_exit1_dr:         exit1_dr = `set;
+		`state_pause_dr:         pause_dr = `set;
+		`state_exit2_dr:         exit2_dr = `set;
+		`state_update_dr:        update_dr = `set;
+		`state_select_ir_scan:   select_ir_scan = `set;
+		`state_capture_ir:       capture_ir = `set;
+		`state_shift_ir:         shift_ir = `set;
+		`state_exit1_ir:         exit1_ir = `set;
+		`state_pause_ir:         pause_ir = `set;
+		`state_exit2_ir:         exit2_ir = `set;
+		`state_update_ir:        update_ir = `set;
 	endcase
 end
 endmodule
